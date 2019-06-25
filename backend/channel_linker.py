@@ -1,7 +1,10 @@
+from channel import GenericChannel
+
+
 class ChannelLinker:
     def __init__(self, target, dest):
-        self.target = target
-        self.dest = dest
+        self.target: GenericChannel = target
+        self.dest: GenericChannel = dest
         self.target.add_listener(self.message_listener)
 
     def __repr__(self):
@@ -14,5 +17,5 @@ class ChannelLinker:
             "dest": self.target.serialise()
         }
 
-    async def message_listener(self, message):
-        await self.dest.post(message)
+    async def message_listener(self, message: str, username: str, avatar_url: str):
+        await self.dest.post(message, username, avatar_url)

@@ -11,5 +11,5 @@ class SlackChannel(GenericChannel):
             "id": self.channel.id
         }
 
-    async def post(self, message: str):
+    async def post(self, message: str, username: str, avatar_url: str):
         await self.channel.send(message)
