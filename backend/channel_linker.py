@@ -4,8 +4,8 @@ class ChannelLinker:
         self.dest = dest
         self.target.add_listener(self.message_listener)
 
-    def __str__(self):
-        return f"{self.target}_{self.dest}"
+    def __repr__(self):
+        return f'<ChannelLinker("{self.target}", "{self.dest}")>'
 
     def serialise(self):
         return {
@@ -14,5 +14,5 @@ class ChannelLinker:
             "dest": self.target.serialise()
         }
 
-    async def message_listener(message):
+    async def message_listener(self, message):
         await self.dest.post(message)
