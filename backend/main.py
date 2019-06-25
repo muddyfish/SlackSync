@@ -2,7 +2,9 @@ import asyncio
 
 from _discord.message_reader import unserialise_channel as unserialise_discord
 from _discord.message_reader import discord_setup
+
 from _slack.message_reader import unserialise_channel as unserialise_slack
+from _slack.message_reader import slack_setup
 
 from config import Config
 from channel_linker import ChannelLinker
@@ -19,7 +21,7 @@ async def main():
     config = Config.from_file()
 
     await discord_setup(config.discord)
-    #await slack_setup()
+    await slack_setup(config.slack)
 
     serialised_links = json_storage.load()
     links = []
