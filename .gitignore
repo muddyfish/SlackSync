@@ -2,3 +2,5 @@ backend/.idea
 backend/venv
 backend/config.yaml
 backend/links.json
+
+__pycache__/
