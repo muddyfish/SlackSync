@@ -17,7 +17,7 @@ class DiscordChannel(GenericChannel):
     async def post(self, message: str, username: str, avatar_url: str):
         webhook = await get_channel_webhook(self.channel)
         await webhook.send(
-            content=message.replace("@everyone", "").replace("@here", ""),
+            content=message.replace("@everyone", "@\u200beveryone").replace("@here", "@\u200bhere"),
             username=username,
             avatar_url=avatar_url
         )
