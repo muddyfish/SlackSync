@@ -1,2 +1,4 @@
-venv
-config.yaml
+backend/.idea
+backend/venv
+backend/config.yaml
+backend/links.json
