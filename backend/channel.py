@@ -1,7 +1,7 @@
 class GenericChannel:
-  def __init__(self, channel, message_handler):
+  def __init__(self, channel):
     self.channel = channel
-    self.message_handler = message_handler
+    self.message_handlers = []
   
   def __str__(self):
     raise NotImplementedError()
@@ -11,3 +11,6 @@ class GenericChannel:
   
   async def post(self, message: str):
     raise NotImplementedError()
+
+  def add_listener(self, listener):
+    self.message_handlers.append(listener)
