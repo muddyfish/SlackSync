@@ -35,7 +35,6 @@ async def main():
                 continue
             channels[src] = channel
         links.append(ChannelLinker(**channels))
-    print(links)
 
     while True:
         await asyncio.sleep(3600)
