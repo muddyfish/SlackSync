@@ -4,12 +4,11 @@ from discord_webhook import send_message as send_discord_message
 from slack_message_reader import setup as slack_setup, on_message as on_slack_message
 from slack_webhook import send_message as send_slack_message
 
-webhooks = {}
-
-async def get_webhook()
+from storage import json_storage
 
 
 async def main():
   await discord_setup()
   await slack_setup()
 
+  links = json_storage.load()
