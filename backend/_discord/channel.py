@@ -30,7 +30,7 @@ async def get_channel_webhook(channel: TextChannel) -> Webhook:
         return a
     webhooks = await channel.webhooks()
     for i in range(2-len(webhooks)):
-        webhooks.append(await channel.create_webhook(name=f"NQN-{i+1}"))
+        webhooks.append(await channel.create_webhook(name=f"Sync-{i+1}"))
     a, b, *_ = webhooks
     channel_webhooks[channel] = a, b
     return b
