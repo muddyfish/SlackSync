@@ -50,9 +50,18 @@ class SlackSetup extends Component {
               <Segment stacked color='purple' inverted>
                 <Image src='/Slack_RGB_white.svg'/>
               </Segment>
-              { this.state.botUsername === "" && 
+              { this.state.botUsername === "" &&
                 <Segment>
                   Connect to Slack
+                </Segment>
+              }
+              { this.state.botUsername === "" &&
+                <Segment>
+                  <Button color='purple' onClick={() => {
+                    window.open("https://api.slack.com/apps", '_blank').focus();
+                  }}>
+                    Open my Apps
+                  </Button>
                 </Segment>
               }
               { this.state.botUsername !== "" && 
@@ -103,6 +112,7 @@ class SlackSetup extends Component {
             { this.state.botUsername !== "" && 
               <Segment>
                 <Button color='purple' fluid size='large' attached='top' onClick={() => {
+                    this.props.callback(this.state.botToken);
                   }}
                 >
                   Continue

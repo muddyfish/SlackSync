@@ -1,9 +1,12 @@
 import React, {Component} from 'react';
 import 'semantic-ui-less/semantic.less';
 
+import update from "immutability-helper";
+import queryString from 'querystring';
+import axios from 'axios';
+
 import DiscordSetup from './pages/discord_setup';
 import SlackSetup from './pages/slack_setup';
-import update from "immutability-helper";
 
 class Setup extends Component {
   constructor(props) {
@@ -31,13 +34,24 @@ class Setup extends Component {
                     discordClientSecret,
                     slackBotToken: botToken
                   }
-                }));
+                }), () => {
+                  this.sendCredentials();
+                });
               }}/>
             }
           }));
         }}/>
       }
     }));
+  }
+
+  sendCredentials() {
+    const callback = queryString.parse(window.location.search.slice(1)).callback || "/api";
+    axios.post(`${callback}/setup`, {
+      discordBotToken: this.state.discordBotToken,
+      discordClientSecret: this.state.discordClientSecret,
+      slackBotToken: this.state.slackBotToken,
+    });
   }
 
   render() {
