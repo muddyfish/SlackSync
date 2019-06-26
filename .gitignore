@@ -4,3 +4,4 @@ backend/config.yaml
 backend/links.json
 
 __pycache__/
+.DS_STORE
