@@ -1,8 +1,11 @@
 from aiohttp import web
 import aiohttp_cors
 from asyncio import Event
+import webbrowser
 
 from .routes import setup
+
+serve_static = False
 
 
 async def initialise_app(use_lock):
@@ -14,6 +17,8 @@ async def initialise_app(use_lock):
             unlock=event
         )
     ])
+    if serve_static:
+        app.router.add_static("/", "static")
     await add_handlers(app)
     await add_cors(app)
 
@@ -24,6 +29,8 @@ async def initialise_app(use_lock):
     print(f"Started website at localhost:{port}")
     await site.start()
     if use_lock:
+        if serve_static:
+            webbrowser.open(f"http://localhost:{port}/setup")
         await event.wait()
 
 
