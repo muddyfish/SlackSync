@@ -3,8 +3,10 @@ import { Button, Form, Grid, Header, Image, Segment, Label } from 'semantic-ui-r
 
 import update from 'immutability-helper';
 import axios from 'axios';
+import queryString from 'querystring';
 
-const apiURL = "https://discordapp.com/api/v6/users/@me"
+const apiURL = "https://discordapp.com/api/v6/users/@me";
+const oauthCheckURL = "https://discordapp.com/api/v6/oauth2/token";
 
 class DiscordSetup extends Component {
   constructor(props) {
@@ -21,13 +23,24 @@ class DiscordSetup extends Component {
 
   discordLogin(callback) {
     axios.get(apiURL, { headers: { Authorization: `Bot ${this.state.botToken}` }}).then(response => {
-      this.setState(update(this.state, {
-        $merge: {
-          botUsername: response.data.username,
-          avatarUrl: this.getAvatarURL(response.data)
-        }
-      }), () => {
-        callback("");
+      axios.post(oauthCheckURL, queryString.stringify({
+          client_id: atob(this.state.botToken.split(".", 1)[0]),
+          client_secret: this.state.clientSecret,
+          grant_type: "client_credentials",
+          scope: "identify"
+        }),
+        {headers: {"Content-Type": "application/x-www-form-urlencoded"}}
+      ).then(_ => {
+        this.setState(update(this.state, {
+          $merge: {
+            botUsername: response.data.username,
+            avatarUrl: this.getAvatarURL(response.data)
+          }
+        }), () => {
+          callback("");
+        });
+      }).catch(response => {
+        callback("Invalid client secret");
       });
     }).catch(response => {    
       callback("Invalid bot token");
@@ -42,7 +55,6 @@ class DiscordSetup extends Component {
   }
 
   render() {
-    console.log(this.state);
     return (
       <Grid textAlign='center' style={{ height: '100vh' }} verticalAlign='middle'>
         <Grid.Column style={{ maxWidth: 450 }}>
@@ -122,6 +134,10 @@ class DiscordSetup extends Component {
             { this.state.botUsername !== "" && 
               <Segment>
                 <Button color='violet' fluid size='large' attached='top' onClick={() => {
+                    this.props.callback({
+                      botToken: this.state.botToken,
+                      clientSecret: this.state.clientSecret
+                    });
                   }}
                 >
                   Continue
