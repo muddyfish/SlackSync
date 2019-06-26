@@ -11,7 +11,7 @@ async def initialise_app(use_lock):
         event = Event()
     app = web.Application(middlewares=[
         add_requset(
-            unlock=event.set
+            unlock=event
         )
     ])
     await add_handlers(app)
@@ -25,7 +25,6 @@ async def initialise_app(use_lock):
     await site.start()
     if use_lock:
         await event.wait()
-        await site.stop()
 
 
 def add_requset(**kwargs):

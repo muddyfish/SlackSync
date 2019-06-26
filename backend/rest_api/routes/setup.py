@@ -19,7 +19,7 @@ async def setup(request):
             }
         }, config_f)
 
-    request["unlock"]()
+    request["unlock"].set()
 
     return json_response(data={
         "ok": True

@@ -20,11 +20,13 @@ channel_handlers = {
 }
 
 
-async def main():
+async def main(setup_server):
     config = Config.from_file()
 
     await discord_setup(config.discord)
     await slack_setup(config.slack)
+    if setup_server:
+        await initialise_app(use_lock=False)
 
     serialised_links = json_storage.load()
     links = []
@@ -47,6 +49,8 @@ async def main():
 
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
+    setup_server = True
     if not os.path.exists("config.yaml"):
+        setup_server = False
         loop.run_until_complete(initialise_app(use_lock=True))
-    loop.run_until_complete(main())
+    loop.run_until_complete(main(setup_server))
