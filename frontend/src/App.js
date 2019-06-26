@@ -41,7 +41,6 @@ class Setup extends Component {
   }
 
   render() {
-    console.log(this.state);
     return this.state.rendered;
   }
 }
