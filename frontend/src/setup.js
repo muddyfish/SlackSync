@@ -27,7 +27,7 @@ class Setup extends Component {
           const discordClientSecret = clientSecret;
           this.setState(update(this.state, {
             $merge: {
-              rendered: <SlackSetup callback={({botToken}) => {
+              rendered: <SlackSetup callback={(botToken) => {
                 this.setState(update(this.state, {
                   $merge: {
                     discordBotToken,
@@ -44,6 +44,7 @@ class Setup extends Component {
       }
     }));
   }
+
 
   sendCredentials() {
     const callback = queryString.parse(window.location.search.slice(1)).callback || "/api";

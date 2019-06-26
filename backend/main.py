@@ -1,4 +1,5 @@
 import asyncio
+import os
 
 from _discord.message_reader import unserialise_channel as unserialise_discord
 from _discord.message_reader import discord_setup
@@ -8,6 +9,8 @@ from _slack.message_reader import slack_setup
 
 from config import Config
 from channel_linker import ChannelLinker
+
+from rest_api.handlers import initialise_app
 from storage import json_storage
 
 
@@ -44,4 +47,6 @@ async def main():
 
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
+    if not os.path.exists("config.yaml"):
+        loop.run_until_complete(initialise_app(use_lock=True))
     loop.run_until_complete(main())

@@ -1,3 +1,4 @@
 discord.py
 slack-sansio[aiohttp]
 PyYAML
+aiohttp_cors

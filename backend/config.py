@@ -17,7 +17,3 @@ class Config:
     @property
     def slack(self):
         return self.config["slack"]
-
-    @property
-    def web(self):
-        return self.config["web"]
