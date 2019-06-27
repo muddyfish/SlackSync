@@ -12,7 +12,7 @@ from storage import json_storage
 
 
 chat_handlers = []
-
+links = []
 
 async def main(setup_server):
     config = Config.from_file()
@@ -26,10 +26,9 @@ async def main(setup_server):
     chat_handlers.append(slack)
 
     if setup_server:
-        await initialise_app(chat_handlers, use_lock=False)
+        await initialise_app(chat_handlers, links, use_lock=False)
 
     serialised_links = json_storage.load()
-    links = []
 
     for link in serialised_links:
         channels = {}
@@ -52,5 +51,5 @@ if __name__ == '__main__':
     setup_server = True
     if not os.path.exists("config.yaml"):
         setup_server = False
-        loop.run_until_complete(initialise_app(chat_handlers, use_lock=True))
+        loop.run_until_complete(initialise_app(chat_handlers, links, use_lock=True))
     loop.run_until_complete(main(setup_server))

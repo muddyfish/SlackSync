@@ -11,7 +11,7 @@ class DiscordChannel(GenericChannel):
     def serialise(self):
         return {
             "type": "discord",
-            "id": self.channel.id
+            "id": str(self.channel.id)
         }
 
     async def post(self, message: str, username: str, avatar_url: str):

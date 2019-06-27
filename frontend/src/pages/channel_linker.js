@@ -10,7 +10,7 @@ class ChannelLinker extends React.Component {
   }
 
   onMessage(message) {
-    console.log(message);
+    console.log(JSON.parse(message));
   }
 
   render() {

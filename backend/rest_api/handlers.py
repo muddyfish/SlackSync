@@ -9,14 +9,15 @@ from .routes import websocket
 serve_static = False
 
 
-async def initialise_app(chat_handlers, use_lock):
+async def initialise_app(chat_handlers, channel_links, use_lock):
     event = None
     if use_lock:
         event = Event()
     app = web.Application(middlewares=[
         add_requset(
             unlock=event,
-            chat_handlers=chat_handlers
+            chat_handlers=chat_handlers,
+            channel_links=channel_links
         )
     ])
     if serve_static:

@@ -1,6 +1,6 @@
 from typing import Optional
 import asyncio
-from discord import Client, Message
+from discord import Client, Message, TextChannel
 from weakref import WeakValueDictionary
 
 from .channel import DiscordChannel
@@ -29,7 +29,10 @@ class DiscordHandler(GenericHandler):
             return self.channels[channel_id]
         except KeyError:
             pass
-        channel = self.bot.get_channel(channel_id)
+        try:
+            channel = self.bot.get_channel(int(channel_id))
+        except ValueError:
+            return
         if not channel:
             return
         rtn = DiscordChannel(channel)
@@ -59,7 +62,9 @@ class DiscordHandler(GenericHandler):
                 }
             }
             for channel in self.bot.get_all_channels()
-            if channel.permissions_for(channel.guild.me).send_messages
+            if (channel.permissions_for(channel.guild.me).send_messages and
+                isinstance(channel, TextChannel)
+            )
         ]
 
     async def on_message(self, message):
