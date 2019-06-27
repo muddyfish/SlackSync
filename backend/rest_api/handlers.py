@@ -4,6 +4,7 @@ from asyncio import Event
 import webbrowser
 
 from .routes import setup
+from .routes import websocket
 
 serve_static = False
 
@@ -45,6 +46,7 @@ def add_requset(**kwargs):
 
 async def add_handlers(app: web.Application):
     app.router.add_post("/setup", setup.setup)
+    app.router.add_get("/ws", websocket.ws)
 
 
 async def add_cors(app):
