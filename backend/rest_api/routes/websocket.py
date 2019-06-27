@@ -1,9 +1,6 @@
-from aiohttp.web import WebsocketResponse
+from aiohttp.web import WebSocketResponse
 import json
 
-handlers = {
-  "link_channels": channel_linker
-}
 
 async def ws(request):
     ws = WebSocketResponse()
@@ -21,3 +18,8 @@ async def ws(request):
 
 async def link_channels(ws, source, dest):
     print(source, dest)
+
+
+handlers = {
+  "link_channels": link_channels
+}
