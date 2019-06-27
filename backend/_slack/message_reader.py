@@ -9,12 +9,14 @@ from slack.events import Message
 from slack.io.aiohttp import SlackAPI
 
 from .channel import SlackChannel
+from generic_handler import GenericHandler
 
 mention = re.compile(r"<@([A-Za-z0-9]+)>")
 
 
-class SlackHandler:
+class SlackHandler(GenericHandler):
     def __init__(self):
+        super(SlackHandler, self).__init__()
         session = ClientSession()
         self.slack_client = SlackAPI(token=None, session=session)
 

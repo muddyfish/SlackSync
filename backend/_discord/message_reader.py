@@ -4,9 +4,11 @@ from discord import Client, Message
 from weakref import WeakValueDictionary
 
 from .channel import DiscordChannel
+from generic_handler import GenericHandler
 
-class DiscordHandler:
+class DiscordHandler(GenericHandler):
     def __init__(self):
+        super(DiscordHandler, self).__init__()
         self.bot = Client()
         self.message_handlers = []
         self.channels = WeakValueDictionary()
@@ -17,6 +19,9 @@ class DiscordHandler:
         await self.bot.wait_until_ready()
         print("Logged into Discord")
         self.bot.event(self.on_message)
+        self.bot.event("on_guild_channel_create", self.process_channel_handlers)
+        self.bot.event("on_guild_channel_delete", self.process_channel_handlers)
+        self.bot.event("on_guild_channel_update", self.process_channel_handlers)
 
     def get_channel(self, serialised) -> Optional[DiscordChannel]:
         channel_id = serialised.get("id")
@@ -39,6 +44,22 @@ class DiscordHandler:
         self.message_handlers.append(on_message_handler)
         self.channels[channel_id] = rtn
         return rtn
+    
+    @property
+    def serialised_channels(self):
+        return [
+            {
+                "type": "discord",
+                "id": f"{channel.id}",
+                "name": channel.name,
+                "server": {
+                    "id": f"{channel.guild.id}",
+                    "name": channel.guild.name,
+                    "icon": str(channel.guild.icon_url_as(format="png", size=256))
+                }
+            }
+            for channel in self.bot.channels
+        ]
 
     async def on_message(self, message):
         await asyncio.gather(*[handler(message) for handler in self.message_handlers])
