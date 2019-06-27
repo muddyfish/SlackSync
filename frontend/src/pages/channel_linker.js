@@ -172,10 +172,25 @@ class ChannelLinker extends React.Component {
         <Grid stackable textAlign='center' columns={2} padded>
           <Grid.Row>
             <Grid.Column>
-              <ChannelDropper channel={channelL} onDrop={() => {}}/>
+              <ChannelDropper channel={channelL} onDrop={(channel) => {
+                const links = JSON.parse(JSON.stringify(this.state.links));
+                links[links.findIndex(l => l.id === link.id)] = {
+                  id: `${channelR.id}:${channel.id}`,
+                  source: channel,
+                  target: channelR
+                };
+                console.log({links, link});
+                this.setState(update(this.state, {
+                  $merge: {
+                    links
+                  }
+                }));
+              }}/>
             </Grid.Column>
             <Grid.Column>
-              <ChannelDropper channel={channelR} onDrop={() => {}}/>
+              <ChannelDropper channel={channelR} onDrop={(channel) => {
+
+              }}/>
             </Grid.Column>
           </Grid.Row>
         </Grid>
