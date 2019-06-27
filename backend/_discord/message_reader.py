@@ -19,9 +19,9 @@ class DiscordHandler(GenericHandler):
         await self.bot.wait_until_ready()
         print("Logged into Discord")
         self.bot.event(self.on_message)
-        self.bot.event("on_guild_channel_create", self.process_channel_handlers)
-        self.bot.event("on_guild_channel_delete", self.process_channel_handlers)
-        self.bot.event("on_guild_channel_update", self.process_channel_handlers)
+        self.bot.event(self.on_guild_channel_create)
+        self.bot.event(self.on_guild_channel_delete)
+        self.bot.event(self.on_guild_channel_update)
 
     def get_channel(self, serialised) -> Optional[DiscordChannel]:
         channel_id = serialised.get("id")
@@ -58,8 +58,18 @@ class DiscordHandler(GenericHandler):
                     "icon": str(channel.guild.icon_url_as(format="png", size=256))
                 }
             }
-            for channel in self.bot.channels
+            for channel in self.bot.get_all_channels()
+            if channel.permissions_for(channel.guild.me).send_messages
         ]
 
     async def on_message(self, message):
         await asyncio.gather(*[handler(message) for handler in self.message_handlers])
+
+    async def on_guild_channel_create(self, channel):
+        await self.process_channel_handlers()
+        
+    async def on_guild_channel_delete(self, channel):
+        await self.process_channel_handlers()
+
+    async def on_guild_channel_update(self, before, after):
+        await self.process_channel_handlers()
