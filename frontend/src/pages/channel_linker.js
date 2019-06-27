@@ -3,7 +3,14 @@ import React from 'react';
 import Websocket from 'react-websocket';
 import update from "immutability-helper";
 import queryString from 'querystring';
+import { useDrag } from 'react-dnd'
 
+import { List, Image, Grid } from 'semantic-ui-react'
+
+const imageURLS = {
+  slack: "/Slack_Mark_Monochrome_White.svg",
+  discord: "Discord-Logo-White.svg"
+}
 
 class ChannelLinker extends React.Component {
   constructor(props) {
@@ -20,7 +27,6 @@ class ChannelLinker extends React.Component {
 
   onMessage(message) {
     const data = JSON.parse(message);
-    console.log(this.state)
     if (data.type === "channel_update") {
       this.setState(update(this.state, {
         $merge: {
@@ -40,17 +46,42 @@ class ChannelLinker extends React.Component {
     }
   }
 
+  renderChannel(channel) {
+    return (
+      <List.Item key={channel.id}>
+        <Image avatar size='mini' verticalAlign='middle' src={imageURLS[channel.type]} />
+        <List.Content>
+          <List.Header>{channel.server.name}</List.Header>
+          <List.Description>{channel.name}</List.Description>
+        </List.Content>
+      </List.Item>
+    );
+  }
+
   render() {
     console.log(this.state);
     return (
       <div>
-        <Websocket 
-          url={`ws://${this.getApiURL()}/ws`} 
-          onMessage={() => this.onMessage}
+        <Grid container columns={2}>
+          <Grid.Column width={3} color="grey">
+            <List divided relaxed inverted selection>
+              {this.state.channels.map(channel => this.renderChannel(channel))}
+            </List>
+          </Grid.Column>
+          <Grid.Column width={13} color="grey">
+            Awoo
+          </Grid.Column>
+        </Grid>
+        <Websocket
+          url={`ws://${this.getApiURL()}/ws`}
+          onMessage={message => this.onMessage(message)}
           reconnect={true}
           debug={true}
-          ref={Websocket => {
-            this.sendMessage = Websocket.sendMessage;
+          ref={ws => {
+            if (ws === null) {
+              return
+            }
+            this.sendMessage = ws.sendMessage;
           }}/>
       </div>
     );
