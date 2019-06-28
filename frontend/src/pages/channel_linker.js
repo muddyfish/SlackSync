@@ -16,10 +16,8 @@ const imageURLS = {
   discord: "Discord-Logo-White.svg"
 }
 
-const lightImageURLS = {
-  slack: "/Slack_Mark_Monochrome_Black.svg",
-  discord: "Discord-Logo-Black.svg"
-}
+
+const arrows = ["arrows alternate horizontal", "arrow left", "arrow right"];
 
 
 function Channel({channel}) {
@@ -43,16 +41,19 @@ function Channel({channel}) {
 }
 
 function ChannelDropper({channel, onDrop}) {
-  const [_, drop] = useDrop({
+  const [{canDrop}, drop] = useDrop({
     accept: "CHANNEL",
     drop: (item) => {
       onDrop(item.channel);
     },
+    collect: (monitor) => ({
+      canDrop: !!monitor.canDrop()
+    })
   });
 
   return (
     <Ref innerRef={drop}>
-      <Segment raised>
+      <Segment raised className={canDrop? "hover_animate": ""}>
         { channel === null &&
           <Placeholder>
             <Placeholder.Header image>
@@ -86,7 +87,8 @@ class ChannelLinker extends React.Component {
       channels: [],
       links: [],
       channelL: null,
-      channelR: null
+      channelR: null,
+      direction: 0
     }
   }
 
@@ -104,11 +106,23 @@ class ChannelLinker extends React.Component {
       }));
     }
     else if (data.type === "channel_links_update") {
-      this.setState(update(this.state, {
-        $merge: {
-          links: data.channel_links
+      const links = [];
+      data.channel_links.forEach(({id, source, target}) => {
+        const prev = links.findIndex(l => l.source.id === target.id && l.target.id === source.id);
+        console.log({prev, links, source, target})
+        if (prev !== -1) {
+          links[prev].direction = 0;
         }
-      }));
+        else {
+          links.push({
+            id,
+            source,
+            target,
+            direction: 2
+          });
+        }
+      })
+      this.setState(update(this.state, {$merge: {links}}));
     }
     else {
       alert(`Unknown message type ${data.type}`);
@@ -120,10 +134,12 @@ class ChannelLinker extends React.Component {
       $merge: {
         channelL: null,
         channelR: null,
+        direction: 0,
         links: this.state.links.concat([{
           id: `${this.state.channelR.id}:${this.state.channelL.id}`,
           source: this.state.channelL,
-          target: this.state.channelR
+          target: this.state.channelR,
+          direction: this.state.direction
         }])
       }
     }));
@@ -133,7 +149,17 @@ class ChannelLinker extends React.Component {
     return (
       <Segment color="grey" inverted>
         <Divider vertical>
-          <Icon name="arrows alternate horizontal"/>
+          <Icon 
+            name={arrows[this.state.direction]} 
+            className="cursor white"
+            onClick={() => {
+              this.setState(update(this.state, {
+                $merge: {
+                  direction: (this.state.direction + 1) % 3
+                }
+              }));
+            }}
+          />
         </Divider>
         <Grid stackable textAlign='center' columns={2} padded>
           <Grid.Row>
@@ -162,34 +188,54 @@ class ChannelLinker extends React.Component {
   }
 
   renderChannelLink(link) {
+    console.log(link)
     const channelL = this.state.channels.find(channel => channel.id === link.source.id);
     const channelR = this.state.channels.find(channel => channel.id === link.target.id);
+    const updateLink = (newLink) => {
+      const links = JSON.parse(JSON.stringify(this.state.links));
+      links[links.findIndex(l => l.id === link.id)] = newLink;
+      this.setState(update(this.state, {
+        $merge: {
+          links
+        }
+      }));
+    };
     return (
       <Segment color="grey" inverted key={link.id}>
         <Divider vertical>
-          <Icon name="arrows alternate horizontal"/>
+          <Icon 
+            name={arrows[link.direction]}
+            className="cursor_pointer white"
+            onClick={() => {
+              updateLink({
+                id: `${channelL.id}:${channelR.id}`,
+                source: channelL,
+                target: channelR,
+                direction: (link.direction + 1) % 3
+              });
+            }}
+          />
         </Divider>
         <Grid stackable textAlign='center' columns={2} padded>
           <Grid.Row>
             <Grid.Column>
               <ChannelDropper channel={channelL} onDrop={(channel) => {
-                const links = JSON.parse(JSON.stringify(this.state.links));
-                links[links.findIndex(l => l.id === link.id)] = {
-                  id: `${channelR.id}:${channel.id}`,
+                updateLink({
+                  id: `${channel.id}:${channelR.id}`,
                   source: channel,
-                  target: channelR
-                };
-                console.log({links, link});
-                this.setState(update(this.state, {
-                  $merge: {
-                    links
-                  }
-                }));
+                  target: channelR,
+                  direction: link.direction
+                });
               }}/>
             </Grid.Column>
             <Grid.Column>
               <ChannelDropper channel={channelR} onDrop={(channel) => {
-
+                updateLink({
+                  id: `${channelL.id}:${channelR.id}`,
+                  source: channelL,
+                  target: channel,
+                  direction: link.direction
+                });
               }}/>
             </Grid.Column>
           </Grid.Row>
