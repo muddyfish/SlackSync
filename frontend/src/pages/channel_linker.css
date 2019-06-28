@@ -7,11 +7,16 @@
 }
 
 .ui.segment.grey.hover {
-  background-color: #5C5F63 !important;
+  background-color: #99AAB5 !important;
+}
+
+.ui.segment.grey {
+  background-color: #99AAB5;
+  border: initial;
 }
 
 i {
-  right: -11px;
+  right: -10px;
   position: absolute;
 }
 

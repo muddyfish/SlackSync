@@ -9,7 +9,7 @@ import { useDrag, useDrop } from 'react-dnd'
 import ReactHoverObserver from 'react-hover-observer';
 
 
-import { List, Image, Grid, Ref, Segment, Divider, Icon, Placeholder, Item, Sticky, Button } from 'semantic-ui-react'
+import { List, Image, Grid, Ref, Segment, Divider, Icon, Placeholder, Item, Sticky, Button, Input } from 'semantic-ui-react'
 
 import './channel_linker.css';
 
@@ -22,16 +22,20 @@ const imageURLS = {
 const arrows = ["arrows alternate horizontal", "arrow left", "arrow right"];
 
 
-function Channel({channel}) {
-  const [_, drag] = useDrag({
+function Channel({channel, mouseClick}) {
+  const drag = useDrag({
     item: {
       type: "CHANNEL",
       channel
     }
   });
   return (
-    <Ref innerRef={drag}>
-      <List.Item>
+    <Ref innerRef={drag[1]}>
+      <List.Item
+        onMouseDown={() => {mouseClick(true)}}
+        onMouseUp={() => {mouseClick(false)}}
+        onMouseMove={() => {mouseClick(false)}}
+      >
         <Image avatar size='mini' verticalAlign='middle' src={imageURLS[channel.type]} />
         <List.Content>
           <List.Header>{channel.server.name}</List.Header>
@@ -42,7 +46,7 @@ function Channel({channel}) {
   );
 }
 
-function ChannelDropper({channel, onDrop}) {
+function ChannelDropper({channel, forceHighlights, onDrop}) {
   const [{canDrop}, drop] = useDrop({
     accept: "CHANNEL",
     drop: (item) => {
@@ -55,7 +59,10 @@ function ChannelDropper({channel, onDrop}) {
 
   return (
     <Ref innerRef={drop}>
-      <Segment raised className={canDrop? "hover_animate": ""}>
+      <Segment
+        raised
+        className={canDrop || forceHighlights? "hover_animate": ""}
+      >
         { channel === null &&
           <Placeholder>
             <Placeholder.Header image>
@@ -81,7 +88,7 @@ function ChannelDropper({channel, onDrop}) {
 }
 
 class ChannelLinker extends React.Component {
-  channelDropperRef = createRef();
+  topRef = createRef();
 
   constructor(props) {
     super(props);
@@ -90,12 +97,14 @@ class ChannelLinker extends React.Component {
       links: [],
       channelL: null,
       channelR: null,
-      direction: 0
+      direction: 0,
+      channelFilter: "",
+      forceHighlights: false
     }
   }
 
   getApiURL() {
-    return queryString.parse(window.location.search.slice(1)).callback || `${window.location.host}`;
+    return queryString.parse(window.location.search.slice(1)).callback || window.location.host;
   }
 
   onMessage(message) {
@@ -111,7 +120,6 @@ class ChannelLinker extends React.Component {
       const links = [];
       data.channel_links.forEach(({id, source, target}) => {
         const prev = links.findIndex(l => l.source.id === target.id && l.target.id === source.id);
-        console.log({prev, links, source, target})
         if (prev !== -1) {
           links[prev].direction = 0;
         }
@@ -166,22 +174,30 @@ class ChannelLinker extends React.Component {
         <Grid stackable textAlign='center' columns={2} padded>
           <Grid.Row>
             <Grid.Column>
-              <ChannelDropper channel={this.state.channelL} onDrop={(channel) => {
-                this.setState(update(this.state, {
-                  $merge: {
-                    channelL: channel
-                  }
-                }));
-              }}/>
+              <ChannelDropper
+                channel={this.state.channelL}
+                forceHighlights={this.state.forceHighlights}
+                onDrop={(channel) => {
+                  this.setState(update(this.state, {
+                    $merge: {
+                      channelL: channel
+                    }
+                  }));
+                }}
+              />
             </Grid.Column>
             <Grid.Column>
-              <ChannelDropper channel={this.state.channelR} onDrop={(channel) => {
-                this.setState(update(this.state, {
-                  $merge: {
-                    channelR: channel
-                  }
-                }));
-              }}/>
+              <ChannelDropper
+                channel={this.state.channelR}
+                forceHighlights={this.state.forceHighlights}
+                onDrop={(channel) => {
+                  this.setState(update(this.state, {
+                    $merge: {
+                      channelR: channel
+                    }
+                  }));
+                }}
+              />
             </Grid.Column>
           </Grid.Row>
         </Grid>
@@ -190,7 +206,6 @@ class ChannelLinker extends React.Component {
   }
 
   renderChannelLink(link) {
-    console.log(link)
     const channelL = this.state.channels.find(channel => channel.id === link.source.id);
     const channelR = this.state.channels.find(channel => channel.id === link.target.id);
     const updateLink = (newLink) => {
@@ -203,10 +218,10 @@ class ChannelLinker extends React.Component {
       }));
     };
     return (
-      <ReactHoverObserver>
+      <ReactHoverObserver key={link.id}>
         {({ isHovering }) => (
-          <Segment color="grey" className={isHovering? "hover": ""} inverted key={link.id}>
-            { true && 
+          <Segment color="grey" className={isHovering ? "hover": ""} inverted>
+            { isHovering &&
               <Icon 
               name="times circle"
               className="cursor_pointer"
@@ -237,24 +252,32 @@ class ChannelLinker extends React.Component {
             <Grid stackable textAlign='center' columns={2} padded>
               <Grid.Row>
                 <Grid.Column>
-                  <ChannelDropper channel={channelL} onDrop={(channel) => {
-                    updateLink({
-                      id: `${channel.id}:${channelR.id}`,
-                      source: channel,
-                      target: channelR,
-                      direction: link.direction
-                    });
-                  }}/>
+                  <ChannelDropper
+                    channel={channelL}
+                    forceHighlights={this.state.forceHighlights}
+                    onDrop={(channel) => {
+                      updateLink({
+                        id: `${channel.id}:${channelR.id}`,
+                        source: channel,
+                        target: channelR,
+                        direction: link.direction
+                      });
+                    }}
+                  />
                 </Grid.Column>
                 <Grid.Column>
-                  <ChannelDropper channel={channelR} onDrop={(channel) => {
-                    updateLink({
-                      id: `${channelL.id}:${channelR.id}`,
-                      source: channelL,
-                      target: channel,
-                      direction: link.direction
-                    });
-                  }}/>
+                  <ChannelDropper
+                    channel={channelR}
+                    forceHighlights={this.state.forceHighlights}
+                    onDrop={(channel) => {
+                      updateLink({
+                        id: `${channelL.id}:${channelR.id}`,
+                        source: channelL,
+                        target: channel,
+                        direction: link.direction
+                      });
+                    }}
+                  />
                 </Grid.Column>
               </Grid.Row>
             </Grid>
@@ -267,15 +290,37 @@ class ChannelLinker extends React.Component {
   render() {
     return (
       <DndProvider backend={HTML5Backend}>
-        <Ref innerRef={this.channelDropperRef}>
+        <Ref innerRef={this.topRef}>
           <Grid container columns={2} >
             <Grid.Column width={4} color="grey">
+              <Sticky context={this.topRef}>
+                <Segment color="grey">
+                  <Input
+                    fluid
+                    placeholder="Filter channels"
+                    onChange={inp => {
+                      this.setState(update(this.state, {$merge: {channelFilter: inp.target.value}}));
+                    }}
+                  />
+                </Segment>
+              </Sticky>
               <List divided relaxed inverted selection>
-                {this.state.channels.map(channel => <Channel channel={channel} key={channel.id}/>)}
+                {this.state.channels
+                  .filter(channel =>
+                    channel.name.toLowerCase().includes(this.state.channelFilter.toLowerCase()) ||
+                    channel.server.name.toLowerCase().includes(this.state.channelFilter.toLowerCase())
+                  ).map(channel => <Channel
+                    channel={channel}
+                    key={channel.id}
+                    mouseClick={(forceHighlights) => {
+                      this.setState(update(this.state, {$merge: {forceHighlights}}));
+                    }}
+                  />)
+                }
               </List>
             </Grid.Column>
             <Grid.Column width={12} color="grey">
-              <Sticky context={this.channelDropperRef}>
+              <Sticky context={this.topRef}>
                 { this.renderDNDtargets() }
                 <Grid>
                   <Grid.Column textAlign="center">
