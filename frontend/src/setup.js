@@ -47,7 +47,7 @@ class Setup extends Component {
 
 
   sendCredentials() {
-    const callback = queryString.parse(window.location.search.slice(1)).callback || "/";
+    const callback = queryString.parse(window.location.search.slice(1)).callback || "";
     axios.post(`${callback}/setup`, {
       discordBotToken: this.state.discordBotToken,
       discordClientSecret: this.state.discordClientSecret,

@@ -6,6 +6,10 @@
   background-color: #7289DA;
 }
 
+.ui.segment {
+  background: #7289DA;
+}
+
 .ui.segment.grey.hover {
   background-color: #99AAB5 !important;
 }
