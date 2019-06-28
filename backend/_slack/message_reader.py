@@ -1,7 +1,7 @@
 from typing import Optional
 import asyncio
 from aiohttp import ClientSession
-from weakref import WeakValueDictionary
+from weakref import WeakValueDictionary, WeakSet
 import re
 
 import slack
@@ -20,10 +20,9 @@ class SlackHandler(GenericHandler):
         session = ClientSession()
         self.slack_client = SlackAPI(token=None, session=session)
 
-        self.message_handlers = []
+        self.message_handlers = WeakSet()
         self.channels = WeakValueDictionary()
         self.profiles = {}
-
 
     async def setup(self, token):
         self.slack_client._token = token
@@ -47,7 +46,6 @@ class SlackHandler(GenericHandler):
         }
         self.profiles[user_id] = rtn
         return rtn
-
 
     def get_channel(self, serialised) -> Optional[SlackChannel]:
         channel_id = serialised["id"]
@@ -78,10 +76,11 @@ class SlackHandler(GenericHandler):
                     user_profile["username"],
                     user_profile["avatar_url"]
                 )
-        self.message_handlers.append(on_message_handler)
+
+        rtn.on_message_handler = on_message_handler
+        self.message_handlers.add(on_message_handler)
         self.channels[channel_id] = rtn
         return rtn
-
 
     async def rtm(self):
         async for event in self.slack_client.rtm():
@@ -90,7 +89,6 @@ class SlackHandler(GenericHandler):
             if isinstance(event, Event):
                 if event["type"].startswith("channel_"):
                     await self.update_channels()
-
 
     @property
     def serialised_channels(self):

@@ -9,9 +9,8 @@ class GenericHandler:
         self.channel_handlers.add(handler)
     
     async def process_channel_handlers(self):
-        print(len(self.channel_handlers))
         for handler in self.channel_handlers:
-            await handler(self.serialised_channels)
+            await handler()
     
     @property
     def serialised_channels(self):

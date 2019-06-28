@@ -1,16 +1,17 @@
 from typing import Optional
 import asyncio
 from discord import Client, Message, TextChannel
-from weakref import WeakValueDictionary
+from weakref import WeakValueDictionary, WeakSet
 
 from .channel import DiscordChannel
 from generic_handler import GenericHandler
+
 
 class DiscordHandler(GenericHandler):
     def __init__(self):
         super(DiscordHandler, self).__init__()
         self.bot = Client()
-        self.message_handlers = []
+        self.message_handlers = WeakSet()
         self.channels = WeakValueDictionary()
     
     async def setup(self, token, client_secret):
@@ -38,13 +39,15 @@ class DiscordHandler(GenericHandler):
         rtn = DiscordChannel(channel)
 
         async def on_message_handler(message: Message):
-            if message.channel.id == channel_id and not message.author.bot:
+            if str(message.channel.id) == str(channel_id) and not message.author.bot:
                 await rtn.on_message(
                     message.clean_content,
                     message.author.display_name,
                     str(message.author.avatar_url_as(format="png", size=256))
                 )
-        self.message_handlers.append(on_message_handler)
+
+        rtn.on_message_handler = on_message_handler
+        self.message_handlers.add(on_message_handler)
         self.channels[channel_id] = rtn
         return rtn
     
@@ -62,7 +65,7 @@ class DiscordHandler(GenericHandler):
                 }
             }
             for channel in self.bot.get_all_channels()
-            if (channel.permissions_for(channel.guild.me).send_messages and
+            if (channel.permissions_for(channel.guild.me).manage_webhooks and
                 isinstance(channel, TextChannel)
             )
         ]

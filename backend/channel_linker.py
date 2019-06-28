@@ -35,5 +35,6 @@ class ChannelLinker:
         }
 
     async def message_listener(self, message: str, username: str, avatar_url: str):
+        print("CL-L", self, message, username, avatar_url, self.target)
         await self.target.post(message, username, avatar_url)
 

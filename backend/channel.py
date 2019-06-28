@@ -1,11 +1,10 @@
-from typing import List
 import asyncio
 
 
 class GenericChannel:
     def __init__(self, channel):
         self.channel = channel
-        self.message_handlers: List = []
+        self.message_handlers = set()
 
     def __str__(self):
         raise NotImplementedError()
@@ -17,7 +16,7 @@ class GenericChannel:
         raise NotImplementedError()
 
     def add_listener(self, listener):
-        self.message_handlers.append(listener)
+        self.message_handlers.add(listener)
 
     async def on_message(self, message: str, username: str, avatar_url: str):
         callbacks = []
