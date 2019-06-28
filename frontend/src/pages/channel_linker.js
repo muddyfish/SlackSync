@@ -7,6 +7,7 @@ import { DndProvider } from 'react-dnd'
 import HTML5Backend from 'react-dnd-html5-backend';
 import { useDrag, useDrop } from 'react-dnd'
 import ReactHoverObserver from 'react-hover-observer';
+import v4 from "uuid/v4";
 
 
 import { List, Image, Grid, Ref, Segment, Divider, Icon, Placeholder, Item, Sticky, Button, Input } from 'semantic-ui-react'
@@ -16,7 +17,7 @@ import './channel_linker.css';
 const imageURLS = {
   slack: "/Slack_Mark_Monochrome_White.svg",
   discord: "Discord-Logo-White.svg"
-}
+};
 
 
 const arrows = ["arrows alternate horizontal", "arrow left", "arrow right"];
@@ -125,18 +126,34 @@ class ChannelLinker extends React.Component {
         }
         else {
           links.push({
-            id,
+            id: v4(),
             source,
             target,
             direction: 2
           });
         }
-      })
+      });
       this.setState(update(this.state, {$merge: {links}}));
     }
     else {
       alert(`Unknown message type ${data.type}`);
     }
+  }
+
+  saveChannels() {
+    const links = [];
+    this.state.links.forEach(({direction, source, target}) => {
+      if (direction !== 1) {
+        links.push({source, target});
+      }
+      if (direction !== 2) {
+        links.push({source: target, target: source});
+      }
+    });
+    this.ws.sendMessage(JSON.stringify({
+      type: "update_links",
+      links
+    }));
   }
 
   linkChannels() {
@@ -145,8 +162,11 @@ class ChannelLinker extends React.Component {
         channelL: null,
         channelR: null,
         direction: 0,
-        links: this.state.links.concat([{
-          id: `${this.state.channelR.id}:${this.state.channelL.id}`,
+        links: this.state.links.filter(({source, target}) => (
+          !(source.id === this.state.channelL.id && target.id === this.state.channelR.id) &&
+          !(source.id === this.state.channelR.id && target.id === this.state.channelL.id)
+        )).concat([{
+          id: v4(),
           source: this.state.channelL,
           target: this.state.channelR,
           direction: this.state.direction
@@ -334,6 +354,16 @@ class ChannelLinker extends React.Component {
                 </Grid>
                 <Divider/>
                 { this.state.links.map(link => this.renderChannelLink(link)) }
+                <Divider/>
+                <Grid>
+                  <Grid.Column textAlign="center">
+                    <Button
+                      color="violet"
+                      content="Save Changes"
+                      onClick={() => this.saveChannels()}
+                    />
+                  </Grid.Column>
+                </Grid>
               </Sticky>
             </Grid.Column>
           </Grid>
@@ -347,7 +377,7 @@ class ChannelLinker extends React.Component {
             if (ws === null) {
               return
             }
-            this.sendMessage = ws.sendMessage;
+            this.ws = ws;
           }}/>
       </DndProvider>
     );

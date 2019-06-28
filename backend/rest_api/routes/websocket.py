@@ -1,5 +1,8 @@
 from aiohttp.web import WebSocketResponse
+import aiohttp
 import json
+
+from channel_linker import deserialise
 
 
 async def ws(request):
@@ -25,17 +28,24 @@ async def ws(request):
             link.serialise() for link in channel_links
         ])
 
-
     for chat_handler in chat_handlers:
         chat_handler.add_channel_handler(on_channel_update)
     await on_channel_update()
     await on_link_update()
 
+    async def update_links(links):
+        channel_links[:] = deserialise(links, chat_handlers)
+        await on_link_update()
+
+    recv_handlers = {
+        "update_links": update_links
+    }
+
     async for msg in ws:
         if msg.type == aiohttp.WSMsgType.TEXT:
             data = json.loads(msg.data)
-            hander = handlers[data["type"]]
+            handler = recv_handlers[data["type"]]
             del data["type"]
-            await hander(ws=ws, **data)
+            await handler(**data)
 
     return ws

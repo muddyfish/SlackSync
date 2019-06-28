@@ -5,7 +5,7 @@ from _discord.message_reader import DiscordHandler
 from _slack.message_reader import SlackHandler
 
 from config import Config
-from channel_linker import ChannelLinker
+from channel_linker import ChannelLinker, deserialise
 
 from rest_api.handlers import initialise_app
 from storage import json_storage
@@ -13,6 +13,7 @@ from storage import json_storage
 
 chat_handlers = []
 links = []
+
 
 async def main(setup_server):
     config = Config.from_file()
@@ -30,17 +31,7 @@ async def main(setup_server):
 
     serialised_links = json_storage.load()
 
-    for link in serialised_links:
-        channels = {}
-        for src in ["source", "target"]:
-            for chat_handler in chat_handlers:
-                channel = chat_handler.get_channel(link[src])
-                if channel:
-                    break
-            if not channel:
-                continue
-            channels[src] = channel
-        links.append(ChannelLinker(**channels))
+    links[:] = deserialise(serialised_links, chat_handlers)
 
     while True:
         await asyncio.sleep(3600)
