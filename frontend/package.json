@@ -11,6 +11,7 @@
     "react-dnd-html5-backend": "^8.0.3",
     "react-dom": "^16.8.6",
     "react-hover-observer": "^2.1.1",
+    "react-router-dom": "^5.0.1",
     "react-scripts": "3.0.1",
     "react-websocket": "^2.0.1",
     "semantic-ui-css": "^2.4.1",
