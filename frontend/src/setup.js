@@ -52,6 +52,8 @@ class Setup extends Component {
       discordBotToken: this.state.discordBotToken,
       discordClientSecret: this.state.discordClientSecret,
       slackBotToken: this.state.slackBotToken,
+    }).then(() => {
+      window.location = "/";
     });
   }
 

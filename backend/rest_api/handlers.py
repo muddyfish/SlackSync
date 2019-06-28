@@ -5,8 +5,9 @@ import webbrowser
 
 from .routes import setup
 from .routes import websocket
+from .routes import static
 
-serve_static = False
+serve_static = True
 
 
 async def initialise_app(chat_handlers, channel_links, use_lock):
@@ -14,15 +15,15 @@ async def initialise_app(chat_handlers, channel_links, use_lock):
     if use_lock:
         event = Event()
     app = web.Application(middlewares=[
-        add_requset(
+        add_request(
             unlock=event,
             chat_handlers=chat_handlers,
             channel_links=channel_links
         )
     ])
+    await add_handlers(app)
     if serve_static:
         app.router.add_static("/", "static")
-    await add_handlers(app)
     await add_cors(app)
 
     runner = web.AppRunner(app)
@@ -37,7 +38,7 @@ async def initialise_app(chat_handlers, channel_links, use_lock):
         await event.wait()
 
 
-def add_requset(**kwargs):
+def add_request(**kwargs):
     async def _middleware(app, handler):
         async def _inner(request: web.Request):
             request.update(kwargs)
@@ -49,6 +50,8 @@ def add_requset(**kwargs):
 async def add_handlers(app: web.Application):
     app.router.add_post("/setup", setup.setup)
     app.router.add_get("/ws", websocket.ws)
+    app.router.add_get("/", static.index)
+    app.router.add_get("/setup", static.setup)
 
 
 async def add_cors(app):
