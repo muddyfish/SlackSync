@@ -6,6 +6,8 @@ import queryString from 'querystring';
 import { DndProvider } from 'react-dnd'
 import HTML5Backend from 'react-dnd-html5-backend';
 import { useDrag, useDrop } from 'react-dnd'
+import ReactHoverObserver from 'react-hover-observer';
+
 
 import { List, Image, Grid, Ref, Segment, Divider, Icon, Placeholder, Item, Sticky, Button } from 'semantic-ui-react'
 
@@ -151,7 +153,7 @@ class ChannelLinker extends React.Component {
         <Divider vertical>
           <Icon 
             name={arrows[this.state.direction]} 
-            className="cursor white"
+            className="cursor_pointer white"
             onClick={() => {
               this.setState(update(this.state, {
                 $merge: {
@@ -201,46 +203,64 @@ class ChannelLinker extends React.Component {
       }));
     };
     return (
-      <Segment color="grey" inverted key={link.id}>
-        <Divider vertical>
-          <Icon 
-            name={arrows[link.direction]}
-            className="cursor_pointer white"
-            onClick={() => {
-              updateLink({
-                id: `${channelL.id}:${channelR.id}`,
-                source: channelL,
-                target: channelR,
-                direction: (link.direction + 1) % 3
-              });
-            }}
-          />
-        </Divider>
-        <Grid stackable textAlign='center' columns={2} padded>
-          <Grid.Row>
-            <Grid.Column>
-              <ChannelDropper channel={channelL} onDrop={(channel) => {
-                updateLink({
-                  id: `${channel.id}:${channelR.id}`,
-                  source: channel,
-                  target: channelR,
-                  direction: link.direction
-                });
-              }}/>
-            </Grid.Column>
-            <Grid.Column>
-              <ChannelDropper channel={channelR} onDrop={(channel) => {
-                updateLink({
-                  id: `${channelL.id}:${channelR.id}`,
-                  source: channelL,
-                  target: channel,
-                  direction: link.direction
-                });
-              }}/>
-            </Grid.Column>
-          </Grid.Row>
-        </Grid>
-      </Segment>
+      <ReactHoverObserver>
+        {({ isHovering }) => (
+          <Segment color="grey" className={isHovering? "hover": ""} inverted key={link.id}>
+            { true && 
+              <Icon 
+              name="times circle"
+              className="cursor_pointer"
+              corner="top right"
+              onClick={() => {
+                this.setState(update(this.state, {
+                  $merge: {
+                    links: this.state.links.filter(l => l.id !== link.id)
+                  }
+                }));
+              }}
+            />
+            }
+            <Divider vertical>
+              <Icon 
+                name={arrows[link.direction]}
+                className="cursor_pointer white"
+                onClick={() => {
+                  updateLink({
+                    id: `${channelL.id}:${channelR.id}`,
+                    source: channelL,
+                    target: channelR,
+                    direction: (link.direction + 1) % 3
+                  });
+                }}
+              />
+            </Divider>
+            <Grid stackable textAlign='center' columns={2} padded>
+              <Grid.Row>
+                <Grid.Column>
+                  <ChannelDropper channel={channelL} onDrop={(channel) => {
+                    updateLink({
+                      id: `${channel.id}:${channelR.id}`,
+                      source: channel,
+                      target: channelR,
+                      direction: link.direction
+                    });
+                  }}/>
+                </Grid.Column>
+                <Grid.Column>
+                  <ChannelDropper channel={channelR} onDrop={(channel) => {
+                    updateLink({
+                      id: `${channelL.id}:${channelR.id}`,
+                      source: channelL,
+                      target: channel,
+                      direction: link.direction
+                    });
+                  }}/>
+                </Grid.Column>
+              </Grid.Row>
+            </Grid>
+          </Segment>
+        )}
+      </ReactHoverObserver>
     )
   }
 
