@@ -1,4 +1,4 @@
-from discord import Webhook, TextChannel
+from discord import Webhook, TextChannel, Message
 from channel import GenericChannel
 
 channel_webhooks = {}
@@ -22,6 +22,13 @@ class DiscordChannel(GenericChannel):
             avatar_url=avatar_url
         )
 
+    async def on_message_handler(self, message: Message):
+        if str(message.channel.id) == str(channel_id) and not message.author.bot:
+            await self.on_message(
+                message.clean_content,
+                message.author.display_name,
+                str(message.author.avatar_url_as(format="png", size=256))
+            )
 
 async def get_channel_webhook(channel: TextChannel) -> Webhook:
     if channel in channel_webhooks:

@@ -7,7 +7,7 @@ from .routes import setup
 from .routes import websocket
 from .routes import static
 
-serve_static = True
+serve_static = False
 
 
 async def initialise_app(chat_handlers, channel_links, use_lock):

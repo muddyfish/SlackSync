@@ -37,17 +37,7 @@ class DiscordHandler(GenericHandler):
         if not channel:
             return
         rtn = DiscordChannel(channel)
-
-        async def on_message_handler(message: Message):
-            if str(message.channel.id) == str(channel_id) and not message.author.bot:
-                await rtn.on_message(
-                    message.clean_content,
-                    message.author.display_name,
-                    str(message.author.avatar_url_as(format="png", size=256))
-                )
-
-        rtn.on_message_handler = on_message_handler
-        self.message_handlers.add(on_message_handler)
+        self.message_handlers.add(rtn.on_message_handler)
         self.channels[channel_id] = rtn
         return rtn
     

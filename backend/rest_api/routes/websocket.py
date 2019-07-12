@@ -1,7 +1,6 @@
 from aiohttp.web import WebSocketResponse
 import aiohttp
 import json
-import gc
 
 from channel_linker import deserialise
 
@@ -36,7 +35,6 @@ async def ws(request):
 
     async def update_links(links):
         channel_links[:] = []
-        gc.collect()
         channel_links[:] = deserialise(links, chat_handlers)
         with open("links.json", "w") as links_f:
             json.dump(links, links_f)
